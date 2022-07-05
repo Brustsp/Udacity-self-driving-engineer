@@ -1,4 +1,3 @@
-#include <fstream>
 #include <math.h>
 #include <uWS/uWS.h>
 #include <chrono>
@@ -7,168 +6,175 @@
 #include <vector>
 #include "Eigen-3.3/Eigen/Core"
 #include "Eigen-3.3/Eigen/QR"
+#include "MPC.h"
 #include "json.hpp"
-#include "spline.h"
-#include "helper.h"
 
-using namespace std;
+// for convenience
 using json = nlohmann::json;
+
+// For converting back and forth between radians and degrees.
+constexpr double pi() { return M_PI; }
+double deg2rad(double x) { return x * pi() / 180; }
+double rad2deg(double x) { return x * 180 / pi(); }
+
+// Checks if the SocketIO event has JSON data.
+// If there is data the JSON object in string format will be returned,
+// else the empty string "" will be returned.
+string hasData(string s) {
+  auto found_null = s.find("null");
+  auto b1 = s.find_first_of("[");
+  auto b2 = s.rfind("}]");
+  if (found_null != string::npos) {
+    return "";
+  } else if (b1 != string::npos && b2 != string::npos) {
+    return s.substr(b1, b2 - b1 + 2);
+  }
+  return "";
+}
+
+// Evaluate a polynomial.
+double polyeval(Eigen::VectorXd coeffs, double x) {
+  double result = 0.0;
+  for (int i = 0; i < coeffs.size(); i++) {
+    result += coeffs[i] * pow(x, i);
+  }
+  return result;
+}
+
+// Fit a polynomial.
+// Adapted from
+// https://github.com/JuliaMath/Polynomials.jl/blob/master/src/Polynomials.jl#L676-L716
+Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
+                        int order) {
+  assert(xvals.size() == yvals.size());
+  assert(order >= 1 && order <= xvals.size() - 1);
+  Eigen::MatrixXd A(xvals.size(), order + 1);
+
+  for (int i = 0; i < xvals.size(); i++) {
+    A(i, 0) = 1.0;
+  }
+
+  for (int j = 0; j < xvals.size(); j++) {
+    for (int i = 0; i < order; i++) {
+      A(j, i + 1) = A(j, i) * xvals(j);
+    }
+  }
+
+  auto Q = A.householderQr();
+  auto result = Q.solve(yvals);
+  return result;
+}
 
 int main() {
   uWS::Hub h;
 
-  // Load up map values for waypoint's x,y,s and d normalized normal vectors
-  vector<double> map_waypoints_x;
-  vector<double> map_waypoints_y;
-  vector<double> map_waypoints_s;
-  vector<double> map_waypoints_dx;
-  vector<double> map_waypoints_dy;
+  // MPC is initialized here!
+  MPC mpc;
 
-  // Waypoint map to read from
-  string map_file_ = "../data/highway_map.csv";
-  // The max s value before wrapping around the track back to 0
-  double max_s = 6945.554;
-  // Detect distance in the front.
-  double detect_s_front = 42;
-  // Detect distance at behind.
-  double detect_s_behind = 30;
-  // start velocity.
-  double ref_vel = 0;
-  // velocity chanage rate. km/h
-  double cosy_acc = 0.8;
-  // start in lane 1
-  int lane = 1;
-
-  ifstream in_map_(map_file_.c_str(), ifstream::in);
-
-  string line;
-  while (getline(in_map_, line)) {
-  	istringstream iss(line);
-  	double x;
-  	double y;
-  	float s;
-  	float d_x;
-  	float d_y;
-  	iss >> x;
-  	iss >> y;
-  	iss >> s;
-  	iss >> d_x;
-  	iss >> d_y;
-  	map_waypoints_x.push_back(x);
-  	map_waypoints_y.push_back(y);
-  	map_waypoints_s.push_back(s);
-  	map_waypoints_dx.push_back(d_x);
-  	map_waypoints_dy.push_back(d_y);
-  }
-
-
-  h.onMessage([&map_waypoints_x, &map_waypoints_y, &map_waypoints_s, &map_waypoints_dx, 
-                &map_waypoints_dy, &ref_vel, &lane, &max_s, &detect_s_front, &cosy_acc](
-                  uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,uWS::OpCode opCode) {
+  h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+                     uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
-    //auto sdata = string(data).substr(0, length);
-    //cout << sdata << endl;
-
-    if (length && length > 2 && data[0] == '4' && data[1] == '2') {
-
-      auto s = hasData(data);
-
+    string sdata = string(data).substr(0, length);
+    // cout << sdata << endl;
+    if (sdata.size() > 2 && sdata[0] == '4' && sdata[1] == '2') {
+      string s = hasData(sdata);
       if (s != "") {
         auto j = json::parse(s);
-        
         string event = j[0].get<string>();
-        
         if (event == "telemetry") {
-            // j[1] is the data JSON object
-        	  // Main car's localization Data
-          	double car_x = j[1]["x"];
-          	double car_y = j[1]["y"];
-          	double car_s = j[1]["s"];
-          	double car_d = j[1]["d"];
-          	double car_yaw = j[1]["yaw"];
-          	double car_speed = j[1]["speed"]; // km/h
-            lane = car_d / 4; // the width of one lane is 4m, get which lane the car is driving on 
-          	// Previous path data given to the Planner
-          	auto previous_path_x = j[1]["previous_path_x"];
-          	auto previous_path_y = j[1]["previous_path_y"];
-          	// Previous path's end s and d values 
-          	double end_path_s = j[1]["end_path_s"];
-          	double end_path_d = j[1]["end_path_d"];
+          // j[1] is the data JSON object
+          vector<double> ptsx = j[1]["ptsx"];
+          vector<double> ptsy = j[1]["ptsy"];
+          double px = j[1]["x"];
+          double py = j[1]["y"];
+          double psi = j[1]["psi"];
+          double v = j[1]["speed"];
 
-            int prev_size = previous_path_x.size();
-          	// Sensor Fusion Data, a list of all other cars on the same side of the road.
-          	auto sensor_fusion = j[1]["sensor_fusion"];
-            /* find the nearest car in front in current lane */ 
-            bool too_close = false;            
-            int front_car_id = 0;
-            double min_delta_s = detect_s_front;
+          /*
+          * TODO: Calculate steering angle and throttle using MPC.
+          *
+          * Both are in between [-1, 1].
+          *
+          */
 
+          int N = ptsx.size();
+          Eigen::VectorXd ptsx_vc(N);
+          Eigen::VectorXd ptsy_vc(N);
+          // rotate and shift the global waypoints ptsx and ptsy to the coordinate of vehicle
+          for(int i = 0; i < N; i++) {
+            ptsx_vc[i] = (ptsx[i] - px) * cos(psi) + (ptsy[i] - py) * sin(psi);
+            ptsy_vc[i] = (ptsy[i] - py) * cos(psi) - (ptsx[i] - px) * sin(psi);
+          }
+          // fit a polynomial and calculate the current cte/cpsi.
+          auto coeffs = polyfit(ptsx_vc, ptsy_vc, 3);
+          double cte = polyeval(coeffs, 0.0);
+          double epsi = atan(coeffs[1]);
 
-            for(int i = 0; i < sensor_fusion.size(); i++){
-              double check_car_d = sensor_fusion[i][6];
-              double check_car_s = sensor_fusion[i][5];
-              double delta_s;
-
-              if(check_car_d < (2 + 4 * lane + 2) && check_car_d > (2 + 4 * lane - 2)){
-                delta_s = check_car_s - car_s;
-
-                /* end point */
-                if(car_s > max_s - detect_s_front && check_car_s < detect_s_front)  delta_s += max_s;
-
-                if(delta_s > 0 && delta_s < min_delta_s){
-                  front_car_id = i;
-                  min_delta_s = delta_s;
-                }
-              }
-            }
-
-            /* handle if car in front slower than self */
-            auto front_car = sensor_fusion[front_car_id];
-            double vx = front_car[3];
-            double vy = front_car[4]; 
-            double front_car_s = front_car[5];
-            double front_speed = sqrt(vx * vx + vy * vy);
-            //front_car_s += (double)prev_size*0.02*front_speed;
-            if(min_delta_s < detect_s_front && min_delta_s > 0){
-              too_close = true;
-              cout << "Detect a car in front of " << min_delta_s << "m." << endl;
-              
-              vector< vector<int> > next_lane = get_next_lane_and_vehicle(sensor_fusion, car_d, car_s);
-              // check if it is safety to change lane.
-              int best_next_lane_id = get_safety_next_lane(sensor_fusion, next_lane, car_s, car_speed);
-              if(best_next_lane_id != -1) // It's safe to change lane and do it.
-              {
-                lane = best_next_lane_id;
-              } else {         // It's not safe to change lane, keep lane and low speed.
-                if(front_speed < car_speed)
-                  ref_vel = car_speed - cosy_acc;
-                else
-                  ref_vel = car_speed + cosy_acc;
-              }
-            }
-
-            // There is another way to slow down. we can shorten the predict point if the is a car in front of us.
-
-            if(!too_close && ref_vel < 48.8){
-              ref_vel += cosy_acc;
-              std::cout << "Accelerating, current speed is " << ref_vel << "km/h" << std::endl;
-            }
-
-            auto next_vals = generate_trajectory(car_x, car_y, car_s, car_yaw, lane, ref_vel, 
-                                                  previous_path_x, previous_path_y, prev_size, 
-                                                  map_waypoints_s, map_waypoints_x, map_waypoints_y);
-
-            json msgJson;
-          	msgJson["next_x"] = next_vals[0];
-          	msgJson["next_y"] = next_vals[1];
+          double latency_dt = 0.1; // 100 ms
+          double Lf = 2.67; //the distance between front wheel and center of gravity of vehicle
           
-          	auto msg = "42[\"control\","+ msgJson.dump()+"]";
+          double throttle = j[1]["throttle"];
+          double steering_angle = j[1]["steering_angle"];
+          double latency_x = v * latency_dt;
+          double latency_y = 0;
+          double latency_psi = -(v / Lf) * steering_angle * latency_dt;
+          double latency_v = v + throttle * latency_dt;
+          double latency_cte = cte + v * sin(epsi) * latency_dt;
+          double expected_psi = atan(coeffs[1] + 2.0 * coeffs[2] * latency_x + 3.0 * coeffs[3] * latency_x*latency_x);
+          double latency_epsi = psi - expected_psi;
+          Eigen::VectorXd state(6);
 
-          	// this_thread::sleep_for(chrono::milliseconds(10));
-          	ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
-          
+          state << latency_x, latency_y, latency_psi, latency_v, latency_cte, latency_epsi;
+
+          auto vars = mpc.Solve(state, coeffs);
+          double steer_value = -vars[6];
+          double throttle_value = vars[7];
+
+          json msgJson;
+
+          msgJson["steering_angle"] = steer_value;
+          msgJson["throttle"] = throttle_value;
+
+          //Display the MPC predicted trajectory
+          vector<double> mpc_x_vals = mpc.mpc_x;
+          vector<double> mpc_y_vals = mpc.mpc_y;
+
+          //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
+          // the points in the simulator are connected by a Green line
+
+          msgJson["mpc_x"] = mpc_x_vals;
+          msgJson["mpc_y"] = mpc_y_vals;
+
+          //Display the waypoints/reference line
+          vector<double> next_x_vals(15);
+          vector<double> next_y_vals(15);
+
+          //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
+          // the points in the simulator are connected by a Yellow line
+
+          for (int i = 0; i < 15; i++) {
+            next_x_vals[i] = 3 * (double)i;
+            next_y_vals[i] = polyeval(coeffs, next_x_vals[i]);
+          }
+
+          msgJson["next_x"] = next_x_vals;
+          msgJson["next_y"] = next_y_vals;
+
+          auto msg = "42[\"steer\"," + msgJson.dump() + "]";
+          std::cout << msg << std::endl;
+          // Latency
+          // The purpose is to mimic real driving conditions where
+          // the car does actuate the commands instantly.
+          //
+          // Feel free to play around with this value but should be to drive
+          // around the track with 100ms latency.
+          //
+          // NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
+          // SUBMITTING.
+          this_thread::sleep_for(chrono::milliseconds(100));
+          ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       } else {
         // Manual driving
@@ -178,14 +184,16 @@ int main() {
     }
   });
 
-  // We don't need this since we're not using HTTP but if it's removed the program
-  // doesn't compile successfully :-(
+  // We don't need this since we're not using HTTP but if it's removed the
+  // program
+  // doesn't compile :-(
   h.onHttpRequest([](uWS::HttpResponse *res, uWS::HttpRequest req, char *data,
                      size_t, size_t) {
     const std::string s = "<h1>Hello world!</h1>";
     if (req.getUrl().valueLength == 1) {
       res->end(s.data(), s.length());
     } else {
+      // i guess this should be done more gracefully?
       res->end(nullptr, 0);
     }
   });

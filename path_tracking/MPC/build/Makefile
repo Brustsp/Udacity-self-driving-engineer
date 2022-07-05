@@ -57,10 +57,10 @@ RM = /Applications/CMake.app/Contents/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project
+CMAKE_SOURCE_DIR = /Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project/build
+CMAKE_BINARY_DIR = /Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project/build/CMakeFiles /Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project/build/CMakeFiles /Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -117,24 +117,48 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named path_planning
+# Target rules for targets named mpc
 
 # Build rule for target.
-path_planning: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 path_planning
-.PHONY : path_planning
+mpc: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 mpc
+.PHONY : mpc
 
 # fast build rule for target.
-path_planning/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/path_planning.dir/build.make CMakeFiles/path_planning.dir/build
-.PHONY : path_planning/fast
+mpc/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mpc.dir/build.make CMakeFiles/mpc.dir/build
+.PHONY : mpc/fast
+
+src/MPC.o: src/MPC.cpp.o
+.PHONY : src/MPC.o
+
+# target to build an object file
+src/MPC.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mpc.dir/build.make CMakeFiles/mpc.dir/src/MPC.cpp.o
+.PHONY : src/MPC.cpp.o
+
+src/MPC.i: src/MPC.cpp.i
+.PHONY : src/MPC.i
+
+# target to preprocess a source file
+src/MPC.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mpc.dir/build.make CMakeFiles/mpc.dir/src/MPC.cpp.i
+.PHONY : src/MPC.cpp.i
+
+src/MPC.s: src/MPC.cpp.s
+.PHONY : src/MPC.s
+
+# target to generate assembly for a file
+src/MPC.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mpc.dir/build.make CMakeFiles/mpc.dir/src/MPC.cpp.s
+.PHONY : src/MPC.cpp.s
 
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
 # target to build an object file
 src/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/path_planning.dir/build.make CMakeFiles/path_planning.dir/src/main.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mpc.dir/build.make CMakeFiles/mpc.dir/src/main.cpp.o
 .PHONY : src/main.cpp.o
 
 src/main.i: src/main.cpp.i
@@ -142,7 +166,7 @@ src/main.i: src/main.cpp.i
 
 # target to preprocess a source file
 src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/path_planning.dir/build.make CMakeFiles/path_planning.dir/src/main.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mpc.dir/build.make CMakeFiles/mpc.dir/src/main.cpp.i
 .PHONY : src/main.cpp.i
 
 src/main.s: src/main.cpp.s
@@ -150,7 +174,7 @@ src/main.s: src/main.cpp.s
 
 # target to generate assembly for a file
 src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/path_planning.dir/build.make CMakeFiles/path_planning.dir/src/main.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mpc.dir/build.make CMakeFiles/mpc.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
 # Help Target
@@ -161,7 +185,10 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... path_planning"
+	@echo "... mpc"
+	@echo "... src/MPC.o"
+	@echo "... src/MPC.i"
+	@echo "... src/MPC.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

@@ -1,3 +1,3 @@
-/Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project/build/CMakeFiles/path_planning.dir
-/Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project/build/CMakeFiles/edit_cache.dir
-/Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project/build/CMakeFiles/rebuild_cache.dir
+/Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project/build/CMakeFiles/mpc.dir
+/Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project/build/CMakeFiles/edit_cache.dir
+/Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project/build/CMakeFiles/rebuild_cache.dir

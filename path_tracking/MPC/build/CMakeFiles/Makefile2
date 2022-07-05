@@ -54,16 +54,16 @@ RM = /Applications/CMake.app/Contents/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project
+CMAKE_SOURCE_DIR = /Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project/build
+CMAKE_BINARY_DIR = /Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project/build
 
 #=============================================================================
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/path_planning.dir/all
+all: CMakeFiles/mpc.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -71,34 +71,34 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/path_planning.dir/clean
+clean: CMakeFiles/mpc.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/path_planning.dir
+# Target rules for target CMakeFiles/mpc.dir
 
 # All Build rule for target.
-CMakeFiles/path_planning.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/path_planning.dir/build.make CMakeFiles/path_planning.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/path_planning.dir/build.make CMakeFiles/path_planning.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project/build/CMakeFiles --progress-num=1,2 "Built target path_planning"
-.PHONY : CMakeFiles/path_planning.dir/all
+CMakeFiles/mpc.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mpc.dir/build.make CMakeFiles/mpc.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mpc.dir/build.make CMakeFiles/mpc.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project/build/CMakeFiles --progress-num=1,2,3 "Built target mpc"
+.PHONY : CMakeFiles/mpc.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/path_planning.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/path_planning.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project/build/CMakeFiles 0
-.PHONY : CMakeFiles/path_planning.dir/rule
+CMakeFiles/mpc.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/mpc.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project/build/CMakeFiles 0
+.PHONY : CMakeFiles/mpc.dir/rule
 
 # Convenience name for target.
-path_planning: CMakeFiles/path_planning.dir/rule
-.PHONY : path_planning
+mpc: CMakeFiles/mpc.dir/rule
+.PHONY : mpc
 
 # clean rule for target.
-CMakeFiles/path_planning.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/path_planning.dir/build.make CMakeFiles/path_planning.dir/clean
-.PHONY : CMakeFiles/path_planning.dir/clean
+CMakeFiles/mpc.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mpc.dir/build.make CMakeFiles/mpc.dir/clean
+.PHONY : CMakeFiles/mpc.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

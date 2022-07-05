@@ -1,4 +1,4 @@
-# Install script for directory: /Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project
+# Install script for directory: /Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/yukang.li/workspace/learning/carND/CarND-Path-Planning-Project/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/yukang.li/workspace/learning/online_course/03_udacity_self_driving_engineer/materials/CarND-MPC-Project/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
